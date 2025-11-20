@@ -47,19 +47,30 @@ import com.example.listadetareasjetpack.ui.theme.ListaDeTareasJetpackTheme
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.rememberDatePickerState
+
+import com.example.listadetareasjetpack.viewmodels.AuthViewModel
+import com.example.listadetareasjetpack.utils.ApiService
+
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
 
 class MainActivity : ComponentActivity() {
+    private lateinit var retrofit: Retrofit
+    private lateinit var apiService: ApiService
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+
+        initializeRetrofit()
+
         setContent {
             ListaDeTareasJetpackTheme {
                 val navController = rememberNavController()
-                val viewModel = remember { AuthViewModel() }
+                val viewModel = remember { AuthViewModel(apiService = apiService) }
 
                 NavHost(
                     navController = navController,
@@ -69,10 +80,10 @@ class MainActivity : ComponentActivity() {
                         HomeScreen(navController = navController)
                     }
                     composable("registro") {
-                        RegistroScreen(navController = navController,viewModel = viewModel)
+                        RegistroScreen(navController = navController, viewModel = viewModel)
                     }
                     composable("login") {
-                        LoginScreen(navController = navController,viewModel = viewModel)
+                        LoginScreen(navController = navController, viewModel = viewModel)
                     }
                     composable("main") {
                         MainScreenStyled(navController = navController, viewModel = viewModel)
@@ -80,6 +91,16 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
+    }
+
+    private fun initializeRetrofit() {
+        val baseUrl = "https://todolistkotlin.vercel.app/"
+        retrofit = Retrofit.Builder()
+            .baseUrl(baseUrl)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+
+        apiService = retrofit.create(ApiService::class.java)
     }
 }
 
@@ -825,15 +846,4 @@ fun convertMillisToDate(millis: Long): String {
     val date = Date(millis)
     val format = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
     return format.format(date)
-}
-
-@Preview(showBackground = true)
-@Composable
-fun PreviewMainScreenStyled() {
-    ListaDeTareasJetpackTheme {
-        val navController = rememberNavController()
-        val viewModel = remember { AuthViewModel() }
-
-        MainScreenStyled(navController = navController, viewModel = viewModel)
-    }
 }
