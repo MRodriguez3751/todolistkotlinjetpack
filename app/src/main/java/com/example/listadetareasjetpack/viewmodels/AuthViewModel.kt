@@ -21,20 +21,19 @@ class AuthViewModel(private val apiService: ApiService) : ViewModel() {
     var nombreRegistro by mutableStateOf("")
     var apellidosRegistro by mutableStateOf("")
     var usernameRegistro by mutableStateOf("")
-    var emailLogin by mutableStateOf("")
+    var usernameLogin by mutableStateOf("")
     var passwordLogin by mutableStateOf("")
     var isAuthenticated by mutableStateOf(false)
         private set
     private var currentToken: String? = null
 
-    fun login(): Boolean {
+    fun login() {
         viewModelScope.launch {
             try {
                 val response: Response<AuthResponse> = apiService.authenticate(
-                    username = emailLogin,
+                    username = usernameLogin,
                     password = passwordLogin
                 )
-
                 if (response.isSuccessful) {
                     val authData = response.body()
                     if (authData != null) {
@@ -42,28 +41,28 @@ class AuthViewModel(private val apiService: ApiService) : ViewModel() {
                         isAuthenticated = true
                         errorMessage = ""
                         Log.d("AuthViewModel", "Login exitoso, token guardado.")
+                        cleanAllFields()
                         return@launch
                     }
-                } else {
-                    errorMessage = "Error de autenticación: ${response.code()} - ${response.message()}"
                 }
+                errorMessage = "Error de autenticación: ${response.code()} - ${response.message()}"
             } catch (e: Exception) {
                 Log.e("AuthViewModel", "Error en login", e)
                 errorMessage = "Error de red: ${e.message}"
             }
         }
-        return false
     }
 
-    fun register(): Boolean {
+    fun register() {
         if (passwordRegistro != confirmPassword) {
             errorMessage = "Las contraseñas no coinciden"
-            return false
+            return
         }
         if (passwordRegistro.length < 6) {
             errorMessage = "La contraseña debe tener al menos 6 caracteres"
-            return false
+            return
         }
+
         viewModelScope.launch {
             try {
                 val usuarioCreate = UsuarioCreate(
@@ -71,15 +70,13 @@ class AuthViewModel(private val apiService: ApiService) : ViewModel() {
                     nombre = nombreRegistro,
                     apellidos = apellidosRegistro,
                     email = emailRegistro,
-                    contraseña = passwordRegistro
+                    contraseña = passwordRegistro,
+                    activo = true
                 )
-
-                errorMessage = ""
                 val response = apiService.createUsuario(usuarioCreate)
-                if(response.isSuccessful) {
-                    errorMessage = ""
+                if (response.isSuccessful) {
                     Log.d("AuthViewModel", "Registro exitoso.")
-                    emailLogin = emailRegistro
+                    usernameLogin = usernameRegistro
                     passwordLogin = passwordRegistro
                     login()
                 } else {
@@ -91,7 +88,6 @@ class AuthViewModel(private val apiService: ApiService) : ViewModel() {
                 errorMessage = "Error de red al registrar: ${e.message}"
             }
         }
-        return errorMessage.isEmpty()
     }
 
 
@@ -107,7 +103,19 @@ class AuthViewModel(private val apiService: ApiService) : ViewModel() {
     fun onNombreRegistroChange(nombre: String) { nombreRegistro = nombre }
     fun onApellidosRegistroChange(apellidos: String) { apellidosRegistro = apellidos }
     fun onUsernameRegistroChange(username: String) { usernameRegistro = username }
-    fun onEmailLoginChange(email: String) { emailLogin = email }
+    fun onEmailLoginChange(email: String) { usernameLogin = email }
     fun onPasswordLoginChange(password: String) { passwordLogin = password }
     fun getCurrentToken(): String? = currentToken
+
+    fun cleanAllFields() {
+        emailRegistro = ""
+        passwordRegistro = ""
+        confirmPassword = ""
+        errorMessage = ""
+        nombreRegistro = ""
+        apellidosRegistro = ""
+        usernameRegistro = ""
+        usernameLogin = ""
+        passwordLogin = ""
+    }
 }

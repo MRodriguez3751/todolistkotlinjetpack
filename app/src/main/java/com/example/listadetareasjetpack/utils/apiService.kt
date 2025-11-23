@@ -25,7 +25,7 @@ interface ApiService {
     @GET("/usuarios/{id}")
     suspend fun getUsuarioById(
         @Path("id") id: Int,
-    ): Response<Usuario>
+    ): Response<List<Usuario>>
 
     @POST("/usuarios")
     suspend fun createUsuario(
@@ -50,6 +50,11 @@ interface ApiService {
     suspend fun getTareas(
         @Header("Authorization") token: String
     ): Response<List<Tarea>>
+
+    @GET("/tareas/{id}")
+    suspend fun getTarea(
+        @Header("Authorization") token: String
+    ): Response<Tarea>
 
     @POST("/tareas")
     suspend fun createTarea(

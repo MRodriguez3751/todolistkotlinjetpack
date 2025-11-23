@@ -5,7 +5,8 @@ data class UsuarioCreate(
     val nombre: String,
     val apellidos: String,
     val email: String,
-    val contraseña: String
+    val contraseña: String,
+    val activo: Boolean
 )
 
 data class UsuarioUpdate(
@@ -24,6 +25,7 @@ data class Usuario(
     val apellidos: String,
     val email: String,
     val contraseña: String,
+    val fecha_registro: String,
     val activo: Boolean
 )
 data class LoginRequest(
@@ -39,7 +41,7 @@ data class AuthResponse(
 data class TareaCreate(
     val titulo: String,
     val descripcion: String,
-    val fecha_limite: String,
+    val fecha_limite: String?,
     val completada: Boolean
 )
 
@@ -54,7 +56,9 @@ data class Tarea(
     val id: Int,
     val titulo: String,
     val descripcion: String,
-    val fecha_limite: String,
+    val fecha_limite: String?,
+    val fecha_creacion: String,
+    val fecha_actualizacion: String,
     val completada: Boolean,
     val usuario_id: Int
 )
