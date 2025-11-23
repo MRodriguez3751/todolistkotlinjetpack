@@ -107,7 +107,7 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-// ============= Composables =============
+
 
 @Composable
 fun HomeScreen(navController: NavController) {
@@ -295,16 +295,26 @@ fun MainScreenStyled(
                                     modifier = Modifier.size(40.dp)
                                 )
                             }
-                            Text(
-                                text = "TO DO LIST",
-                                color = secundario,
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 30.sp,
-                                textAlign = TextAlign.Center,
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .padding(end = 40.dp)
-                            )
+                            Column(
+                                modifier = Modifier.weight(1f),
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Text(
+                                    text = "TO DO LIST",
+                                    color = secundario,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 30.sp,
+                                    textAlign = TextAlign.Center
+                                )
+                                if (viewModel.currentUserName.isNotBlank()) {
+                                    Text(
+                                        text = "Hola, ${viewModel.currentUserName}",
+                                        color = Color.Gray,
+                                        fontSize = 16.sp,
+                                        textAlign = TextAlign.Center
+                                    )
+                                }
+                            }
                         }
                     }
                 )
@@ -471,7 +481,7 @@ fun MainScreenStyled(
     }
 }
 
-// ============= Diálogos y utilidades =============
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -537,7 +547,7 @@ fun TareaCardStyled(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    tarea.titulo, // ✅ uso de 'titulo'
+                    tarea.titulo,
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
                     color = colorPrincipal
@@ -562,7 +572,7 @@ fun TareaCardStyled(
                     modifier = Modifier.padding(top = 4.dp)
                 )
             }
-            if (tarea.fecha_limite!!.isNotBlank()) { // ✅ uso de 'fecha_limite'
+            if (tarea.fecha_limite!!.isNotBlank()) {
                 Text(
                     text = "Fecha límite: ${tarea.fecha_limite}",
                     color = Color(0xFF757575),
@@ -682,9 +692,204 @@ fun convertMillisToDate(millis: Long): String {
     return format.format(date)
 }
 
-// ============= Pantallas de Auth =============
 
-// (Las funciones RegistroScreen y LoginScreen permanecen igual que en tu código original)
+
+
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun RegistroScreen(
+    navController: NavController,
+    viewModel: AuthViewModel
+) {
+    val gradient = Brush.linearGradient(
+        colors = listOf(
+            Color(0xFFB6D9FF),
+            Color(0xFF8CB4F0),
+            Color(0xFF5C96E5)
+        )
+    )
+    var showPassword by remember { mutableStateOf(false) }
+    var showConfirmPassword by remember { mutableStateOf(false) }
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Crear cuenta") },
+                colors = topAppBarColors(containerColor = Color.Transparent),
+                modifier = Modifier.background(gradient)
+            )
+        }
+    ) { padding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.White)
+                .padding(padding)
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            OutlinedTextField(
+                value = viewModel.usernameRegistro,
+                onValueChange = viewModel::onUsernameRegistroChange,
+                label = { Text("Nombre de usuario") },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
+                modifier = Modifier.fillMaxWidth()
+            )
+            OutlinedTextField(
+                value = viewModel.nombreRegistro,
+                onValueChange = viewModel::onNombreRegistroChange,
+                label = { Text("Nombre") },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
+                modifier = Modifier.fillMaxWidth()
+            )
+            OutlinedTextField(
+                value = viewModel.apellidosRegistro,
+                onValueChange = viewModel::onApellidosRegistroChange,
+                label = { Text("Apellidos") },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
+                modifier = Modifier.fillMaxWidth()
+            )
+            OutlinedTextField(
+                value = viewModel.emailRegistro,
+                onValueChange = viewModel::onEmailRegistroChange,
+                label = { Text("Email") },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+                modifier = Modifier.fillMaxWidth()
+            )
+            OutlinedTextField(
+                value = viewModel.passwordRegistro,
+                onValueChange = viewModel::onPasswordRegistroChange,
+                label = { Text("Contraseña") },
+                visualTransformation = if (showPassword) VisualTransformation.None else PasswordVisualTransformation(),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                trailingIcon = {
+                    IconButton(onClick = { showPassword = !showPassword }) {
+                        Icon(
+                            imageVector = if (showPassword) Icons.Default.Visibility else Icons.Default.VisibilityOff,
+                            contentDescription = if (showPassword) "Ocultar contraseña" else "Mostrar contraseña"
+                        )
+                    }
+                },
+                modifier = Modifier.fillMaxWidth()
+            )
+            OutlinedTextField(
+                value = viewModel.confirmPassword,
+                onValueChange = viewModel::onConfirmPasswordChange,
+                label = { Text("Confirmar contraseña") },
+                visualTransformation = if (showConfirmPassword) VisualTransformation.None else PasswordVisualTransformation(),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                trailingIcon = {
+                    IconButton(onClick = { showConfirmPassword = !showConfirmPassword }) {
+                        Icon(
+                            imageVector = if (showConfirmPassword) Icons.Default.Visibility else Icons.Default.VisibilityOff,
+                            contentDescription = if (showConfirmPassword) "Ocultar contraseña" else "Mostrar contraseña"
+                        )
+    onDescripcionChange: (String) -> Unit,
+    onDismiss: () -> Unit,
+    onConfirm: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Agregar nueva tarea", fontWeight = FontWeight.Bold) },
+        text = {
+            Column {
+                TextField(
+                    value = nombre,
+                    onValueChange = onNombreChange,
+                    label = { Text("Nombre de la tarea") },
+                    singleLine = true
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                TextField(
+                    value = descripcion,
+                    onValueChange = onDescripcionChange,
+                    label = { Text("Descripción (opcional)") },
+                    singleLine = false,
+                    maxLines = 3
+                )
+            }
+        },
+        confirmButton = { TextButton(onClick = onConfirm) { Text("Agregar") } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancelar") } }
+    )
+}
+
+@Composable
+fun EditTareaDialogStyled(
+    nombreActual: String,
+    descripcionActual: String,
+    fechaLimite: String?,
+    onNombreChange: (String) -> Unit,
+    onDescripcionChange: (String) -> Unit,
+    onFechaChange: (String) -> Unit,
+    onOpenDatePicker: () -> Unit,
+    onDismiss: () -> Unit,
+    onConfirm: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Editar tarea", fontWeight = FontWeight.Bold) },
+        text = {
+            Column {
+                TextField(
+                    value = nombreActual,
+                    onValueChange = onNombreChange,
+                    label = { Text("Nombre de la tarea") },
+                    singleLine = true
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                TextField(
+                    value = descripcionActual,
+                    onValueChange = onDescripcionChange,
+                    label = { Text("Descripción") },
+                    maxLines = 3
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                if (fechaLimite != null) {
+                    OutlinedTextField(
+                        value = fechaLimite,
+                        onValueChange = onFechaChange,
+                        label = { Text("Fecha límite") },
+                        readOnly = true,
+                        trailingIcon = {
+                            IconButton(onClick = onOpenDatePicker) {
+                                Icon(Icons.Default.CalendarToday, contentDescription = "Seleccionar fecha")
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+            }
+        },
+        confirmButton = { TextButton(onClick = onConfirm) { Text("Guardar") } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancelar") } }
+    )
+}
+
+@Composable
+fun DeleteConfirmationDialogStyled(
+    onDismiss: () -> Unit,
+    onConfirm: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        icon = { Icon(Icons.Default.Warning, contentDescription = "Advertencia", tint = Color(0xFFE57373)) },
+        title = { Text("¡Cuidado!", fontWeight = FontWeight.Bold, color = Color(0xFFE57373)) },
+        text = { Text("Tu tarea se eliminará para siempre. ¿Deseas continuar?", color = Color.DarkGray) },
+        confirmButton = { TextButton(onClick = onConfirm) { Text("Eliminar", color = Color(0xFFE57373)) } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancelar", color = Color.Gray) } }
+    )
+}
+
+fun convertMillisToDate(millis: Long): String {
+    val date = Date(millis)
+    val format = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+    return format.format(date)
+}
+
+
+
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -779,7 +984,6 @@ fun RegistroScreen(
                 modifier = Modifier.fillMaxWidth()
             )
             if (viewModel.errorMessage.isNotBlank()) {
-                Text(
                     text = viewModel.errorMessage,
                     color = MaterialTheme.colorScheme.error,
                     modifier = Modifier.padding(top = 8.dp)
@@ -788,9 +992,17 @@ fun RegistroScreen(
             Button(
                 onClick = { viewModel.register() },
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(20.dp)
+                shape = RoundedCornerShape(20.dp),
+                enabled = !viewModel.isLoading
             ) {
-                Text("Crear cuenta")
+                if (viewModel.isLoading) {
+                    CircularProgressIndicator(
+                        color = Color.White,
+                        modifier = Modifier.size(24.dp)
+                    )
+                } else {
+                    Text("Crear cuenta")
+                }
             }
             TextButton(
                 onClick = { navController.navigate("login") },
@@ -867,9 +1079,17 @@ fun LoginScreen(
             Button(
                 onClick = { viewModel.login() },
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(20.dp)
+                shape = RoundedCornerShape(20.dp),
+                enabled = !viewModel.isLoading
             ) {
-                Text("Iniciar sesión")
+                if (viewModel.isLoading) {
+                    CircularProgressIndicator(
+                        color = Color.White,
+                        modifier = Modifier.size(24.dp)
+                    )
+                } else {
+                    Text("Iniciar sesión")
+                }
             }
             TextButton(
                 onClick = { navController.navigate("registro") },

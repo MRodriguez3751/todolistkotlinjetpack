@@ -26,9 +26,16 @@ class AuthViewModel(private val apiService: ApiService) : ViewModel() {
     var isAuthenticated by mutableStateOf(false)
         private set
     private var currentToken: String? = null
+    
+    var currentUserName by mutableStateOf("")
+        private set
+        
+    var isLoading by mutableStateOf(false)
+        private set
 
     fun login() {
         viewModelScope.launch {
+            isLoading = true
             try {
                 val response: Response<AuthResponse> = apiService.authenticate(
                     username = usernameLogin,
@@ -41,6 +48,7 @@ class AuthViewModel(private val apiService: ApiService) : ViewModel() {
                         isAuthenticated = true
                         errorMessage = ""
                         Log.d("AuthViewModel", "Login exitoso, token guardado.")
+                        fetchUserProfile()
                         cleanAllFields()
                         return@launch
                     }
@@ -49,6 +57,30 @@ class AuthViewModel(private val apiService: ApiService) : ViewModel() {
             } catch (e: Exception) {
                 Log.e("AuthViewModel", "Error en login", e)
                 errorMessage = "Error de red: ${e.message}"
+            } finally {
+                isLoading = false
+            }
+        }
+    }
+
+    private fun fetchUserProfile() {
+        viewModelScope.launch {
+            try {
+                val response = apiService.getUsuarios()
+                if (response.isSuccessful) {
+                    val usuarios = response.body()
+                    val user = usuarios?.find { it.email == usernameLogin }
+                    if (user != null) {
+                        currentUserName = "${user.nombre} ${user.apellidos}"
+                        Log.d("AuthViewModel", "Usuario encontrado: $currentUserName")
+                    } else {
+                        Log.e("AuthViewModel", "Usuario no encontrado con email: $usernameLogin")
+                    }
+                } else {
+                    Log.e("AuthViewModel", "Error al obtener usuarios: ${response.code()}")
+                }
+            } catch (e: Exception) {
+                Log.e("AuthViewModel", "Error al obtener perfil de usuario", e)
             }
         }
     }
@@ -64,6 +96,7 @@ class AuthViewModel(private val apiService: ApiService) : ViewModel() {
         }
 
         viewModelScope.launch {
+            isLoading = true
             try {
                 val usuarioCreate = UsuarioCreate(
                     username = usernameRegistro,
@@ -82,10 +115,12 @@ class AuthViewModel(private val apiService: ApiService) : ViewModel() {
                 } else {
                     errorMessage = "Error al registrar: ${response.code()} - ${response.message()}"
                     Log.e("AuthViewModel", "Error en register: ${response.code()} - ${response.message()}")
+                    isLoading = false
                 }
             } catch (e: Exception) {
                 Log.e("AuthViewModel", "Error de red al registrar", e)
                 errorMessage = "Error de red al registrar: ${e.message}"
+                isLoading = false
             }
         }
     }
@@ -94,6 +129,7 @@ class AuthViewModel(private val apiService: ApiService) : ViewModel() {
     fun logout() {
         isAuthenticated = false
         currentToken = null
+        currentUserName = ""
         Log.d("AuthViewModel", "Logout realizado.")
     }
 
