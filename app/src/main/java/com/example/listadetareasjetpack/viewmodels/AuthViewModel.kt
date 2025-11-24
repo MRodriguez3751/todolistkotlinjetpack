@@ -102,18 +102,6 @@ class AuthViewModel(private val apiService: ApiService) : ViewModel() {
         viewModelScope.launch {
             isLoading = true
             try {
-                val emptyFields: Boolean = usernameRegistro.isEmpty() ||
-                        passwordRegistro.isEmpty() ||
-                        nombreRegistro.isEmpty() ||
-                        apellidosRegistro.isEmpty() ||
-                        emailRegistro.isEmpty()
-
-                if (emptyFields) {
-                    errorMessage = "Los campos no pueden estar vacíos."
-                    isLoading = false
-                    return@launch
-                }
-
                 val usuarioCreate = UsuarioCreate(
                     username = usernameRegistro,
                     nombre = nombreRegistro,
