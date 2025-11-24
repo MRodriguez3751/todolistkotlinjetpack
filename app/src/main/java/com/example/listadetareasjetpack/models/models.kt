@@ -9,15 +9,6 @@ data class UsuarioCreate(
     val activo: Boolean
 )
 
-data class UsuarioUpdate(
-    val username: String? = null,
-    val nombre: String? = null,
-    val apellidos: String? = null,
-    val email: String? = null,
-    val contraseña: String? = null,
-    val activo: Boolean? = null
-)
-
 data class Usuario(
     val id: Int,
     val username: String,
@@ -27,10 +18,6 @@ data class Usuario(
     val contraseña: String,
     val fecha_registro: String,
     val activo: Boolean
-)
-data class LoginRequest(
-    val username: String,
-    val password: String
 )
 
 data class AuthResponse(

@@ -37,6 +37,11 @@ class AuthViewModel(private val apiService: ApiService) : ViewModel() {
         viewModelScope.launch {
             isLoading = true
             try {
+                if (usernameLogin.isEmpty() || passwordLogin.isEmpty()) {
+                    errorMessage = "Por favor, llene todos los campos."
+                    return@launch
+                }
+
                 val response: Response<AuthResponse> = apiService.authenticate(
                     username = usernameLogin,
                     password = passwordLogin
@@ -49,14 +54,13 @@ class AuthViewModel(private val apiService: ApiService) : ViewModel() {
                         errorMessage = ""
                         Log.d("AuthViewModel", "Login exitoso, token guardado.")
                         fetchUserProfile()
-                        cleanAllFields()
                         return@launch
                     }
                 }
-                errorMessage = "Error de autenticación: ${response.code()} - ${response.message()}"
+                errorMessage = "Credenciales incorrectas."
             } catch (e: Exception) {
                 Log.e("AuthViewModel", "Error en login", e)
-                errorMessage = "Error de red: ${e.message}"
+                errorMessage = "Error inesperado."
             } finally {
                 isLoading = false
             }
@@ -69,7 +73,7 @@ class AuthViewModel(private val apiService: ApiService) : ViewModel() {
                 val response = apiService.getUsuarios()
                 if (response.isSuccessful) {
                     val usuarios = response.body()
-                    val user = usuarios?.find { it.email == usernameLogin }
+                    val user = usuarios?.find { it.username == usernameLogin }
                     if (user != null) {
                         currentUserName = "${user.nombre} ${user.apellidos}"
                         Log.d("AuthViewModel", "Usuario encontrado: $currentUserName")
@@ -98,6 +102,18 @@ class AuthViewModel(private val apiService: ApiService) : ViewModel() {
         viewModelScope.launch {
             isLoading = true
             try {
+                val emptyFields: Boolean = usernameRegistro.isEmpty() ||
+                        passwordRegistro.isEmpty() ||
+                        nombreRegistro.isEmpty() ||
+                        apellidosRegistro.isEmpty() ||
+                        emailRegistro.isEmpty()
+
+                if (emptyFields) {
+                    errorMessage = "Los campos no pueden estar vacíos."
+                    isLoading = false
+                    return@launch
+                }
+
                 val usuarioCreate = UsuarioCreate(
                     username = usernameRegistro,
                     nombre = nombreRegistro,
@@ -113,13 +129,13 @@ class AuthViewModel(private val apiService: ApiService) : ViewModel() {
                     passwordLogin = passwordRegistro
                     login()
                 } else {
-                    errorMessage = "Error al registrar: ${response.code()} - ${response.message()}"
+                    errorMessage = "Error al registrarse."
                     Log.e("AuthViewModel", "Error en register: ${response.code()} - ${response.message()}")
                     isLoading = false
                 }
             } catch (e: Exception) {
                 Log.e("AuthViewModel", "Error de red al registrar", e)
-                errorMessage = "Error de red al registrar: ${e.message}"
+                errorMessage = "Error inesperado."
                 isLoading = false
             }
         }
@@ -139,7 +155,7 @@ class AuthViewModel(private val apiService: ApiService) : ViewModel() {
     fun onNombreRegistroChange(nombre: String) { nombreRegistro = nombre }
     fun onApellidosRegistroChange(apellidos: String) { apellidosRegistro = apellidos }
     fun onUsernameRegistroChange(username: String) { usernameRegistro = username }
-    fun onEmailLoginChange(email: String) { usernameLogin = email }
+    fun onUsernameLoginChange(username: String) { usernameLogin = username }
     fun onPasswordLoginChange(password: String) { passwordLogin = password }
     fun getCurrentToken(): String? = currentToken
 
@@ -147,7 +163,6 @@ class AuthViewModel(private val apiService: ApiService) : ViewModel() {
         emailRegistro = ""
         passwordRegistro = ""
         confirmPassword = ""
-        errorMessage = ""
         nombreRegistro = ""
         apellidosRegistro = ""
         usernameRegistro = ""
